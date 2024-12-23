@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import TemperatureInput from '@/components/TemperatureInput';
@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { generatePackingList } from '@/utils/packingListGenerator';
 import { useRouter } from 'next/navigation';
+import { useTripStore } from '@/store/tripStore';
 
 type QuestionStep = 
   | 'accommodation'
@@ -68,6 +69,12 @@ export default function Questionnaire() {
     skincare: []
   });
   const router = useRouter();
+  const { setPackingList } = useTripStore();
+  const tripDetails = useTripStore((state) => state.tripDetails);
+
+  useEffect(() => {
+    console.log('Current trip details:', tripDetails);
+  }, [tripDetails]);
 
   // Parse dates from URL parameters
   const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : null;
@@ -309,12 +316,27 @@ export default function Questionnaire() {
   };
 
   const handleGenerateList = () => {
-    const tripDuration = endDate && startDate 
-      ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-      : 7;
+    if (!tripDetails) {
+      console.error('No trip details found');
+      router.push('/');
+      return;
+    }
 
-    const packingList = generatePackingList(answers, tripDuration);
-    router.push(`/packing-list?data=${encodeURIComponent(JSON.stringify(packingList))}`);
+    const tripDuration = new Date(tripDetails.endDate).getTime() - new Date(tripDetails.startDate).getTime();
+    const durationInDays = Math.ceil(tripDuration / (1000 * 60 * 60 * 24));
+
+    const packingList = generatePackingList(
+      answers,
+      durationInDays,
+      tripDetails.origin,
+      tripDetails.destination
+    );
+
+    setPackingList(packingList);
+    
+    setTimeout(() => {
+      router.push('/packing-list');
+    }, 0);
   };
 
   const renderQuestion = () => {

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import CityInput from "@/components/CityInput";
 import { toast } from 'react-hot-toast';
+import { useTripStore } from '@/store/tripStore';
 
 interface WeatherData {
   forecast?: {
@@ -28,19 +29,16 @@ export default function Home() {
     name: string;
     state?: string;
     country: string;
-    lat: number;
-    lon: number;
   } | null>(null);
   const [destLocation, setDestLocation] = useState<{
     name: string;
     state?: string;
     country: string;
-    lat: number;
-    lon: number;
   } | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [listName, setListName] = useState("");
+  const { setTripDetails } = useTripStore();
 
   useEffect(() => {
     setMounted(true);
@@ -50,10 +48,9 @@ export default function Home() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if required fields are filled
     if (!origin || !originLocation) {
       toast.error('Please select an origin city');
       return;
@@ -67,19 +64,18 @@ export default function Home() {
       return;
     }
 
-    const params = new URLSearchParams({
+    const tripDetails = {
       origin,
       destination,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      originLat: originLocation.lat.toString(),
-      originLon: originLocation.lon.toString(),
-      destLat: destLocation.lat.toString(),
-      destLon: destLocation.lon.toString(),
       listName: listName || 'My Packing List',
-    });
+    };
 
-    router.push(`/questionnaire?${params.toString()}`);
+    setTripDetails(tripDetails);
+    console.log('Trip details set:', tripDetails);
+
+    router.push('/questionnaire');
   };
 
   if (!mounted) {

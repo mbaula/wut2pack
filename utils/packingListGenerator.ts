@@ -1,7 +1,17 @@
 import { PackingItem, PackingList, CategoryType, Answers } from '@/types/packingList';
 import { BASE_ITEMS } from '@/data/packingItems';
 
-export function generatePackingList(answers: Answers, tripDuration: number): PackingList {
+function isInternationalTravel(origin: string, destination: string): boolean {
+  // Extract country codes from the city strings (assuming format "City, Country")
+  const originCountry = origin.split(',').pop()?.trim() || '';
+  const destCountry = destination.split(',').pop()?.trim() || '';
+  
+  return originCountry !== destCountry && originCountry !== '' && destCountry !== '';
+}
+
+export function generatePackingList(answers: Answers, tripDuration: number, origin?: string, destination?: string): PackingList {
+  const isInternational = origin && destination && isInternationalTravel(origin, destination);
+  
   const list: PackingList = {
     categories: {
       essentials: [],
@@ -15,6 +25,11 @@ export function generatePackingList(answers: Answers, tripDuration: number): Pac
       misc: [],
     },
   };
+
+  // Add international travel items if needed
+  if (isInternational) {
+    answers.activities = [...answers.activities, 'International Travel'];
+  }
 
   // Filter and add items based on conditions
   BASE_ITEMS.forEach(item => {
@@ -48,8 +63,8 @@ function shouldIncludeItem(item: PackingItem, answers: Answers, tripDuration: nu
   }
 
   // Check swimming
-  if (item.conditions.swimming !== undefined && item.conditions.swimming !== answers.swimming) {
-    return false;
+  if (item.conditions?.swimming !== undefined) {
+    if (item.conditions.swimming !== answers.swimming) return false;
   }
 
   // Check special events

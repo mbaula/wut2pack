@@ -1,70 +1,61 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation';
-import { PackingList, CategoryType } from '@/types/packingList';
-
-const categoryDisplayNames: Record<CategoryType, string> = {
-  documents: 'Documents',
-  clothing: 'Clothing',
-  accessories: 'Accessories',
-  toiletries: 'Toiletries',
-  electronics: 'Electronics',
-  medical: 'Medical',
-  activities: 'Activities',
-  essentials: 'Essentials',
-  misc: 'Miscellaneous'
-};
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useTripStore } from '@/store/tripStore';
 
 export default function PackingListPage() {
-  const searchParams = useSearchParams();
-  const packingListData = searchParams.get('data');
-  const packingList: PackingList = packingListData ? JSON.parse(packingListData) : { categories: {} };
+  const router = useRouter();
+  const { packingList, tripDetails } = useTripStore();
+
+  useEffect(() => {
+    if (!packingList || !tripDetails) {
+      router.push('/');
+    }
+  }, [packingList, tripDetails, router]);
+
+  if (!packingList || !tripDetails) return null;
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 dark:text-white">Your Packing List</h1>
-      
-      <div className="grid gap-6">
-        {Object.entries(categoryDisplayNames).map(([category, displayName]) => {
-          const items = packingList.categories[category as CategoryType];
-          if (!items?.length) return null;
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4 pt-20">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+          <h1 className="text-3xl font-bold mb-4 dark:text-white">
+            {tripDetails.listName}
+          </h1>
+          {tripDetails.startDate && tripDetails.endDate && (
+            <p className="text-gray-600 dark:text-gray-400 mb-2">
+              From: {new Date(tripDetails.startDate).toLocaleDateString()} 
+              To: {new Date(tripDetails.endDate).toLocaleDateString()}
+            </p>
+          )}
+        </div>
 
-          return (
-            <div key={category} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4 dark:text-white">{displayName}</h2>
-              <ul className="space-y-2">
-                {items.map(item => (
-                  <li 
-                    key={item.id}
-                    className="flex items-center justify-between py-2 border-b dark:border-gray-700 last:border-0"
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id={item.id}
-                        className="h-5 w-5 rounded border-gray-300 dark:border-gray-600"
-                      />
-                      <label htmlFor={item.id} className="text-gray-800 dark:text-gray-200">
-                        {item.name}
-                        {item.essential && (
-                          <span className="ml-2 text-xs text-red-500">*</span>
-                        )}
-                      </label>
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      Qty: {item.quantity}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          );
-        })}
+        <div className="grid gap-6">
+          {Object.entries(packingList.categories).map(([category, items]) => (
+            items.length > 0 && (
+              <div key={category} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h2 className="text-xl font-semibold mb-4 capitalize dark:text-white">
+                  {category}
+                </h2>
+                <ul className="space-y-2">
+                  {items.map((item) => (
+                    <li key={item.id} className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                      <input type="checkbox" className="rounded border-gray-300 dark:border-gray-600" />
+                      <span>{item.quantity > 1 ? `${item.quantity}x ` : ''}{item.name}</span>
+                      {item.essential && <span className="text-xs text-blue-500">*</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          ))}
+        </div>
+
+        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+          * Essential items
+        </p>
       </div>
-
-      <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-        * Essential items
-      </p>
     </main>
   );
 } 

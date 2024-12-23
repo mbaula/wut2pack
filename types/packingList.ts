@@ -52,4 +52,6 @@ export type Answers = {
   technology: string[];
   eyewear: string[];
   packingFor: string[];
+  travelReason: string[];
+  skincare: string[];
 };
