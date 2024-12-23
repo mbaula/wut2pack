@@ -242,18 +242,45 @@ export const BASE_ITEMS: PackingItem[] = [
 ];
 
 // Helper function to calculate clothing quantities
-export function calculateClothingQuantity(itemName: string, duration: number): number {
-  switch (itemName.toLowerCase()) {
-    case 't-shirts':
-    case 'underwear':
-    case 'socks':
-      return Math.min(duration + 2, 10); // Pack for each day plus 2 extra, max 10
-    case 'pants':
-    case 'shorts':
-      return Math.ceil(duration / 3); // One pair for every 3 days
-    case 'formal-wear':
-      return 1; // Usually one formal outfit is enough
-    default:
-      return 1;
-  }
-} 
+export function calculateClothingQuantity(itemName: string, duration: number, numberOfPeople: number = 1): number {
+  // Items that should be multiplied by number of people
+  const multiplyByPeople = [
+    't-shirts',
+    'underwear',
+    'socks',
+    'pants',
+    'shorts',
+    'winter-coat',
+    'gloves',
+    'scarf',
+    'swimsuit',
+    'pajamas',
+    'formal-wear'
+  ];
+
+  const baseQuantity = (() => {
+    switch (itemName.toLowerCase()) {
+      case 't-shirts':
+      case 'underwear':
+      case 'socks':
+        return Math.min(duration + 2, 10); // Pack for each day plus 2 extra, max 10
+      case 'pants':
+      case 'shorts':
+        return Math.ceil(duration / 3); // One pair for every 3 days
+      case 'winter-coat':
+      case 'gloves':
+      case 'scarf':
+      case 'swimsuit':
+      case 'formal-wear':
+      case 'pajamas':
+        return 1; // Usually one per person
+      default:
+        return 1;
+    }
+  })();
+
+  // Multiply by number of people if the item is in the multiplyByPeople array
+  return multiplyByPeople.includes(itemName.toLowerCase()) 
+    ? baseQuantity * numberOfPeople 
+    : baseQuantity;
+}

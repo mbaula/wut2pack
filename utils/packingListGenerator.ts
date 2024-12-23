@@ -222,7 +222,7 @@ const activitySpecificItems: ActivityItems = {
   'Gym/Fitness': [
     { id: 'workout-clothes', name: 'Workout Clothes', category: 'clothing', quantity: 2, essential: true },
     { id: 'gym-shoes', name: 'Gym Shoes', category: 'clothing', quantity: 1, essential: true },
-    { id: 'gym-towel', name: 'Gym Towel', category: 'toiletries', quantity: 1, essential: true },
+    { id: 'gym-towel', name: 'Gym Towel', category: 'toiletries', quantity: 1, essential: false },
     { id: 'water-bottle-gym', name: 'Water Bottle', category: 'activities', quantity: 1, essential: true },
   ],
   'Skiing/Winter Sports': [
@@ -250,8 +250,8 @@ const eyewearSpecificItems: EyewearItems = {
   'Contact Lenses': [
     { id: 'contacts', name: 'Contact Lenses', category: 'medical', quantity: 1, essential: true },
     { id: 'contact-solution', name: 'Contact Solution', category: 'medical', quantity: 1, essential: true },
-    { id: 'contact-case', name: 'Contact Lens Case', category: 'medical', quantity: 1, essential: true },
-    { id: 'backup-contacts', name: 'Backup Contact Lenses', category: 'medical', quantity: 1, essential: true },
+    { id: 'contact-case', name: 'Contact Lens Case', category: 'medical', quantity: 1, essential: false },
+    { id: 'backup-contacts', name: 'Backup Contact Lenses', category: 'medical', quantity: 1, essential: false },
   ],
   'Sunglasses': [
     { id: 'sunglasses', name: 'Sunglasses', category: 'accessories', quantity: 1, essential: true },
