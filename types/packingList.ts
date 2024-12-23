@@ -38,6 +38,7 @@ export interface PackingList {
   categories: {
     [key in CategoryType]: PackingItem[];
   };
+  nonEssentialItems: PackingItem[];
 }
 
 export type Answers = {

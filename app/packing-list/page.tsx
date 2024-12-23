@@ -108,8 +108,42 @@ export default function PackingListPage() {
     setNewItem({ name: '', quantity: 1, category: 'misc' });
   };
 
-  const nonEmptyCategories = Object.entries(packingList.categories)
-    .filter(([_, items]) => items.length > 0);
+  const handleAddNonEssential = (itemToAdd: PackingItem) => {
+    const updatedPackingList = {
+      ...packingList,
+      categories: {
+        ...packingList.categories,
+        [itemToAdd.category]: [
+          ...packingList.categories[itemToAdd.category].filter(item => 
+            !(item.id === itemToAdd.id && !item.essential)
+          ),
+          {
+            ...itemToAdd,
+            id: `${itemToAdd.id}-added-${Date.now()}`,
+            essential: true
+          }
+        ]
+      }
+    };
+
+    setPackingList(updatedPackingList);
+  };
+
+  const essentialItems = Object.entries(packingList.categories).reduce((acc, [category, items]) => {
+    const essentials = items.filter(item => item.essential);
+    if (essentials.length > 0) {
+      acc[category as CategoryType] = essentials;
+    }
+    return acc;
+  }, {} as Record<CategoryType, PackingItem[]>);
+
+  const nonEssentialItems = Object.entries(packingList.categories).reduce((acc, [category, items]) => {
+    const nonEssentials = items.filter(item => !item.essential);
+    if (nonEssentials.length > 0) {
+      acc[category as CategoryType] = nonEssentials;
+    }
+    return acc;
+  }, {} as Record<CategoryType, PackingItem[]>);
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -209,79 +243,107 @@ export default function PackingListPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {nonEmptyCategories.map(([category, items]) => (
-            <div key={category} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4 capitalize dark:text-white">
-                {category}
-              </h2>
-              <ul className="space-y-2">
-                {items.map((item) => (
-                  <li 
-                    key={item.id} 
-                    className="flex items-center gap-2 text-gray-700 dark:text-gray-300 group p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4 dark:text-white">Essential Items</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {Object.entries(packingList.categories).map(([category, items]) => {
+              const essentialItems = items.filter(item => item.essential);
+              return essentialItems.length > 0 ? (
+                <div key={category} className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+                  <h3 className="text-lg font-medium mb-3 capitalize dark:text-white">{category}</h3>
+                  <ul className="space-y-2">
+                    {essentialItems.map((item) => (
+                      <li 
+                        key={item.id} 
+                        className="flex items-center gap-2 text-gray-700 dark:text-gray-300 group p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg"
+                      >
+                        {editingItem?.id === item.id ? (
+                          <div className="flex items-center gap-2 w-full">
+                            <input
+                              type="number"
+                              min="1"
+                              value={editingItem.quantity}
+                              onChange={(e) => setEditingItem({
+                                ...editingItem,
+                                quantity: parseInt(e.target.value) || 1
+                              })}
+                              className="w-16 p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
+                            />
+                            <input
+                              type="text"
+                              value={editingItem.name}
+                              onChange={(e) => setEditingItem({
+                                ...editingItem,
+                                name: e.target.value
+                              })}
+                              className="flex-1 p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
+                            />
+                            <button
+                              onClick={handleSave}
+                              className="p-1 text-green-500 hover:text-green-600"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <input
+                              type="checkbox"
+                              className="rounded border-gray-300 dark:border-gray-600"
+                            />
+                            <span className="flex-1">
+                              {item.quantity > 1 ? `${item.quantity}x ` : ''}{item.name}
+                              {item.essential && <span className="text-xs text-blue-500 ml-1">*</span>}
+                            </span>
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                              <button
+                                onClick={() => handleEdit(item)}
+                                className="p-1 text-blue-500 hover:text-blue-600"
+                                aria-label="Edit item"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDelete(item)}
+                                className="p-1 text-red-500 hover:text-red-600"
+                                aria-label="Delete item"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null;
+            })}
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4 dark:text-white">Other things you may need:</h2>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(packingList.categories).flatMap(([category, items]) =>
+              items
+                .filter(item => !item.essential)
+                .map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleAddNonEssential(item)}
+                    className="inline-flex items-center gap-1 px-4 py-2 bg-white dark:bg-gray-800 rounded-full shadow hover:shadow-md transition-shadow dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
-                    {editingItem?.id === item.id ? (
-                      <div className="flex items-center gap-2 w-full">
-                        <input
-                          type="number"
-                          min="1"
-                          value={editingItem.quantity}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            quantity: parseInt(e.target.value) || 1
-                          })}
-                          className="w-16 p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
-                        />
-                        <input
-                          type="text"
-                          value={editingItem.name}
-                          onChange={(e) => setEditingItem({
-                            ...editingItem,
-                            name: e.target.value
-                          })}
-                          className="flex-1 p-1 border rounded dark:bg-gray-700 dark:border-gray-600"
-                        />
-                        <button
-                          onClick={handleSave}
-                          className="p-1 text-green-500 hover:text-green-600"
-                        >
-                          Save
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 dark:border-gray-600"
-                        />
-                        <span className="flex-1">
-                          {item.quantity > 1 ? `${item.quantity}x ` : ''}{item.name}
-                          {item.essential && <span className="text-xs text-blue-500 ml-1">*</span>}
-                        </span>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                          <button
-                            onClick={() => handleEdit(item)}
-                            className="p-1 text-blue-500 hover:text-blue-600"
-                            aria-label="Edit item"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item)}
-                            className="p-1 text-red-500 hover:text-red-600"
-                            aria-label="Delete item"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+                    <span>{item.name}</span>
+                    <span className="w-4 h-4 inline-flex items-center justify-center rounded-full text-gray-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                        <path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+                      </svg>
+                    </span>
+                  </button>
+                ))
+            )}
+          </div>
         </div>
 
         <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
