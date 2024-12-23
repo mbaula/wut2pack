@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import CityInput from "@/components/CityInput";
+import { toast } from 'react-hot-toast';
 
 interface WeatherData {
   forecast?: {
@@ -49,9 +50,20 @@ export default function Home() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  const handleSubmit = () => {
-    if (!origin || !destination || !startDate || !endDate || !originLocation || !destLocation) {
-      // Show error message
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Check if required fields are filled
+    if (!origin || !originLocation) {
+      toast.error('Please select an origin city');
+      return;
+    }
+    if (!destination || !destLocation) {
+      toast.error('Please select a destination city');
+      return;
+    }
+    if (!startDate || !endDate) {
+      toast.error('Please select your travel dates');
       return;
     }
 
@@ -181,12 +193,14 @@ export default function Home() {
               </div>
             </div>
 
-            <button 
-              onClick={handleSubmit}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
-            >
-              Generate Packing List
-            </button>
+            <form onSubmit={handleSubmit}>
+              <button 
+                type="submit"
+                className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+              >
+                Generate Packing List
+              </button>
+            </form>
           </div>
         </div>
       </main>

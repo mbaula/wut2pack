@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { Toaster } from 'react-hot-toast';
 
 const geist = Geist({
   subsets: ["latin"],
@@ -22,7 +23,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body className={`${geist.variable} antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <Toaster position="top-center" />
+        </Providers>
       </body>
     </html>
   );
