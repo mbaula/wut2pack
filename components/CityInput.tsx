@@ -6,8 +6,6 @@ interface Location {
   name: string;
   state?: string;
   country: string;
-  lat: number;
-  lon: number;
 }
 
 interface CityInputProps {
@@ -44,56 +42,27 @@ export default function CityInput({ label, value, onChange }: CityInputProps) {
             item.country === current.country
           );
           if (!isDuplicate) {
-            acc.push(current);
+            acc.push({
+              name: current.name,
+              state: current.state,
+              country: current.country
+            });
           }
           return acc;
         }, []);
-        
-        // Sort results based on search relevance
-        const sortedResults = uniqueResults
-          .sort((a, b) => {
-            const aRelevance = calculateRelevance(a.name, value);
-            const bRelevance = calculateRelevance(b.name, value);
-            return bRelevance - aRelevance;
-          })
-          .map(({ name, state, country, lat, lon }) => ({
-            name,
-            state,
-            country,
-            lat,
-            lon
-          }));
 
-        setSuggestions(sortedResults);
+        setSuggestions(uniqueResults);
       } catch (error) {
         console.error('Error fetching suggestions:', error);
         setSuggestions([]);
       } finally {
         setIsLoading(false);
       }
-    };
+    }
 
-    const timeoutId = setTimeout(fetchSuggestions, 300);
-    return () => clearTimeout(timeoutId);
+    const debounceTimer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(debounceTimer);
   }, [value]);
-
-  // Calculate relevance score based on how well the city name matches the search
-  const calculateRelevance = (cityName: string, search: string): number => {
-    const normalizedCity = cityName.toLowerCase();
-    const normalizedSearch = search.toLowerCase();
-    
-    // Exact match gets highest score
-    if (normalizedCity === normalizedSearch) return 1;
-    
-    // Starts with search term gets high score
-    if (normalizedCity.startsWith(normalizedSearch)) return 0.8;
-    
-    // Contains search term gets medium score
-    if (normalizedCity.includes(normalizedSearch)) return 0.5;
-    
-    // Otherwise, low relevance
-    return 0;
-  };
 
   return (
     <div className="relative">
@@ -111,27 +80,34 @@ export default function CityInput({ label, value, onChange }: CityInputProps) {
       />
       {isLoading && (
         <div className="absolute right-2 top-9">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+          <div className="animate-spin h-5 w-5 border-2 border-blue-500 rounded-full border-t-transparent"></div>
         </div>
       )}
       {suggestions.length > 0 && (
         <ul className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
           {suggestions.map((suggestion, index) => (
             <li
-              key={`${suggestion.name}-${suggestion.state || ''}-${suggestion.country}-${index}`}
+              key={`${suggestion.name}-${suggestion.country}-${index}`}
               className={`p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer ${
                 index < suggestions.length - 1 ? 'border-b dark:border-gray-600' : ''
               }`}
               onClick={() => {
-                onChange(suggestion.name, suggestion);
+                onChange(
+                  `${suggestion.name}${suggestion.state ? `, ${suggestion.state}` : ''}, ${suggestion.country}`, 
+                  suggestion
+                );
                 setSuggestions([]);
               }}
             >
               <div className="text-sm dark:text-white">
                 {suggestion.name}
-                {suggestion.state && `, ${suggestion.state}`}
+                {suggestion.state && (
+                  <span className="text-gray-500 dark:text-gray-400 ml-1">
+                    {suggestion.state},
+                  </span>
+                )}
                 <span className="text-gray-500 dark:text-gray-400 ml-1">
-                  ({suggestion.country})
+                  {suggestion.country}
                 </span>
               </div>
             </li>

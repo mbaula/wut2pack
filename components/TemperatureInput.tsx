@@ -3,32 +3,137 @@
 import { useState } from 'react';
 
 interface TemperatureInputProps {
-  startDate: Date;
-  endDate: Date;
+  value: { min: number; max: number };
   onChange: (temps: { min: number; max: number }) => void;
+  startDate?: Date;
+  endDate?: Date;
 }
 
-export default function TemperatureInput({ startDate, endDate, onChange }: TemperatureInputProps) {
-  const [minTemp, setMinTemp] = useState<number>(20);
-  const [maxTemp, setMaxTemp] = useState<number>(25);
+const MIN_TEMP = -50;
+const MAX_TEMP = 50;
 
-  const handleMinChange = (value: number) => {
-    const newMin = Math.min(value, maxTemp);
-    setMinTemp(newMin);
-    onChange({ min: newMin, max: maxTemp });
+export default function TemperatureInput({ value, onChange, startDate, endDate }: TemperatureInputProps) {
+  const [minTemp, setMinTemp] = useState<number>(value.min);
+  const [maxTemp, setMaxTemp] = useState<number>(value.max);
+  const [minTempInput, setMinTempInput] = useState<string>(value.min.toString());
+  const [maxTempInput, setMaxTempInput] = useState<string>(value.max.toString());
+
+  const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    setMinTempInput(inputValue);
+    
+    // Only update if it's a valid number
+    const numValue = parseFloat(inputValue);
+    if (!isNaN(numValue)) {
+      const clampedValue = Math.min(Math.max(numValue, MIN_TEMP), maxTemp - 1);
+      setMinTemp(clampedValue);
+      onChange({ min: clampedValue, max: maxTemp });
+    }
   };
 
-  const handleMaxChange = (value: number) => {
-    const newMax = Math.max(value, minTemp);
-    setMaxTemp(newMax);
-    onChange({ min: minTemp, max: newMax });
+  const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    setMaxTempInput(inputValue);
+    
+    // Only update if it's a valid number
+    const numValue = parseFloat(inputValue);
+    if (!isNaN(numValue)) {
+      const clampedValue = Math.max(Math.min(numValue, MAX_TEMP), minTemp + 1);
+      setMaxTemp(clampedValue);
+      onChange({ min: minTemp, max: clampedValue });
+    }
+  };
+
+  const handleSliderClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const width = rect.width;
+    const percentage = x / width;
+    const tempRange = MAX_TEMP - MIN_TEMP;
+    const tempValue = MIN_TEMP + (tempRange * percentage);
+    
+    // Determine if click is closer to min or max handle
+    const distanceToMin = Math.abs(((minTemp - MIN_TEMP) / tempRange) * width - x);
+    const distanceToMax = Math.abs(((maxTemp - MIN_TEMP) / tempRange) * width - x);
+    
+    if (distanceToMin < distanceToMax) {
+      // Update min temperature
+      const newMin = Math.min(Math.max(Math.round(tempValue), MIN_TEMP), maxTemp - 1);
+      setMinTemp(newMin);
+      setMinTempInput(newMin.toString());
+      onChange({ min: newMin, max: maxTemp });
+    } else {
+      // Update max temperature
+      const newMax = Math.max(Math.min(Math.round(tempValue), MAX_TEMP), minTemp + 1);
+      setMaxTemp(newMax);
+      setMaxTempInput(newMax.toString());
+      onChange({ min: minTemp, max: newMax });
+    }
+  };
+
+  const handleMinDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const slider = e.currentTarget.parentElement;
+    if (!slider) return;
+
+    const rect = slider.getBoundingClientRect();
+    const width = rect.width;
+    const tempRange = MAX_TEMP - MIN_TEMP;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const x = Math.max(0, Math.min(moveEvent.clientX - rect.left, width));
+      const percentage = x / width;
+      const newMin = Math.round(MIN_TEMP + (tempRange * percentage));
+      const clampedMin = Math.min(Math.max(newMin, MIN_TEMP), maxTemp - 1);
+      
+      setMinTemp(clampedMin);
+      setMinTempInput(clampedMin.toString());
+      onChange({ min: clampedMin, max: maxTemp });
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleMaxDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const slider = e.currentTarget.parentElement;
+    if (!slider) return;
+
+    const rect = slider.getBoundingClientRect();
+    const width = rect.width;
+    const tempRange = MAX_TEMP - MIN_TEMP;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const x = Math.max(0, Math.min(moveEvent.clientX - rect.left, width));
+      const percentage = x / width;
+      const newMax = Math.round(MIN_TEMP + (tempRange * percentage));
+      const clampedMax = Math.max(Math.min(newMax, MAX_TEMP), minTemp + 1);
+      
+      setMaxTemp(clampedMax);
+      setMaxTempInput(clampedMax.toString());
+      onChange({ min: minTemp, max: clampedMax });
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   return (
     <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
       <div className="mb-4">
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-          Please enter expected temperatures for {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}
+          Please enter expected temperatures{startDate && endDate ? ` for ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}` : ''}
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
           This will help us recommend appropriate clothing for your trip
@@ -42,10 +147,29 @@ export default function TemperatureInput({ startDate, endDate, onChange }: Tempe
           </label>
           <input
             type="number"
-            value={minTemp}
-            onChange={(e) => handleMinChange(Number(e.target.value))}
+            value={minTempInput}
+            onChange={handleMinChange}
+            onBlur={() => {
+              const numValue = parseFloat(minTempInput);
+              if (isNaN(numValue)) {
+                setMinTempInput(minTemp.toString());
+                return;
+              }
+              if (numValue < MIN_TEMP) {
+                setMinTemp(MIN_TEMP);
+                setMinTempInput(MIN_TEMP.toString());
+              }
+              if (numValue >= maxTemp) {
+                setMinTemp(maxTemp - 1);
+                setMinTempInput((maxTemp - 1).toString());
+              }
+              onChange({ min: minTemp, max: maxTemp });
+            }}
             className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
+          <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
+            Min: {MIN_TEMP}°C
+          </span>
         </div>
         
         <div>
@@ -54,26 +178,62 @@ export default function TemperatureInput({ startDate, endDate, onChange }: Tempe
           </label>
           <input
             type="number"
-            value={maxTemp}
-            onChange={(e) => handleMaxChange(Number(e.target.value))}
+            value={maxTempInput}
+            onChange={handleMaxChange}
+            onBlur={() => {
+              const numValue = parseFloat(maxTempInput);
+              if (isNaN(numValue)) {
+                setMaxTempInput(maxTemp.toString());
+                return;
+              }
+              if (numValue > MAX_TEMP) {
+                setMaxTemp(MAX_TEMP);
+                setMaxTempInput(MAX_TEMP.toString());
+              }
+              if (numValue <= minTemp) {
+                setMaxTemp(minTemp + 1);
+                setMaxTempInput((minTemp + 1).toString());
+              }
+              onChange({ min: minTemp, max: maxTemp });
+            }}
             className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
+          <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
+            Max: {MAX_TEMP}°C
+          </span>
         </div>
       </div>
 
       <div className="mt-4">
-        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
+        <div 
+          className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full relative cursor-pointer"
+          onClick={handleSliderClick}
+        >
           <div 
             className="h-full bg-blue-500 rounded-full"
             style={{ 
-              width: `${((maxTemp - minTemp) / 50) * 100}%`,
-              marginLeft: `${(minTemp + 25) / 50 * 100}%`
+              width: `${((maxTemp - minTemp) / (MAX_TEMP - MIN_TEMP)) * 100}%`,
+              marginLeft: `${((minTemp - MIN_TEMP) / (MAX_TEMP - MIN_TEMP)) * 100}%`
             }}
+          />
+          <div
+            className="absolute w-4 h-4 bg-white border-2 border-blue-500 rounded-full -mt-1.5 -ml-2 cursor-grab active:cursor-grabbing"
+            style={{
+              left: `${((minTemp - MIN_TEMP) / (MAX_TEMP - MIN_TEMP)) * 100}%`
+            }}
+            onMouseDown={handleMinDrag}
+          />
+          <div
+            className="absolute w-4 h-4 bg-white border-2 border-blue-500 rounded-full -mt-1.5 -ml-2 cursor-grab active:cursor-grabbing"
+            style={{
+              left: `${((maxTemp - MIN_TEMP) / (MAX_TEMP - MIN_TEMP)) * 100}%`
+            }}
+            onMouseDown={handleMaxDrag}
           />
         </div>
         <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-          <span>-25°C</span>
-          <span>25°C</span>
+          <span>{MIN_TEMP}°C</span>
+          <span>{MAX_TEMP}°C</span>
         </div>
       </div>
     </div>

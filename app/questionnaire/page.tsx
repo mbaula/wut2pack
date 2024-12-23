@@ -1,8 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import TemperatureInput from '@/components/TemperatureInput';
+import Link from 'next/link';
+import Image from 'next/image';
+import { generatePackingList } from '@/utils/packingListGenerator';
+import { useRouter } from 'next/navigation';
 
 type QuestionStep = 
   | 'accommodation'
@@ -17,43 +22,58 @@ type QuestionStep =
   | 'specialEvents'
   | 'medical'
   | 'skincare'
+  | 'temperature'
   | 'review';
 
-interface Answers {
+export type Answers = {
+  temperature: { min: number; max: number };
+  activities: string[];
+  swimming: boolean;
+  specialEvents: string[];
   accommodation: string[];
   travelReason: string[];
   packingFor: string[];
   technology: string[];
-  swimming: boolean;
-  activities: string[];
   eyewear: string[];
   transportation: string[];
   amenities: string[];
-  specialEvents: string[];
   medical: string[];
   skincare: string[];
-}
+};
+
+type Question = {
+  title: string;
+  options: string[];
+  multiple: boolean;
+  component?: React.ReactNode;
+};
 
 export default function Questionnaire() {
   const searchParams = useSearchParams();
   const { theme, setTheme } = useTheme();
   const [currentStep, setCurrentStep] = useState<QuestionStep>('accommodation');
   const [answers, setAnswers] = useState<Answers>({
+    temperature: { min: 20, max: 25 },
+    activities: [],
+    swimming: false,
+    specialEvents: [],
     accommodation: [],
     travelReason: [],
     packingFor: [],
     technology: [],
-    swimming: false,
-    activities: [],
     eyewear: [],
     transportation: [],
     amenities: [],
-    specialEvents: [],
     medical: [],
     skincare: []
   });
+  const router = useRouter();
 
-  const questions = {
+  // Parse dates from URL parameters
+  const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : null;
+  const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : null;
+
+  const questions: Record<QuestionStep, Question> = {
     accommodation: {
       title: 'Where will you be staying?',
       options: [
@@ -195,6 +215,24 @@ export default function Questionnaire() {
         'None'
       ],
       multiple: true
+    },
+    temperature: {
+      title: 'What temperature range are you expecting?',
+      options: [],
+      multiple: false,
+      component: (
+        <div className="w-full">
+          <TemperatureInput
+            value={answers.temperature}
+            onChange={(temp) => setAnswers(prev => ({ ...prev, temperature: temp }))}
+          />
+        </div>
+      )
+    },
+    review: {
+      title: 'Review Your Answers',
+      options: [],
+      multiple: false
     }
   };
 
@@ -236,8 +274,10 @@ export default function Questionnaire() {
       'specialEvents',
       'medical',
       'skincare',
+      'temperature',
       'review'
     ];
+
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1]);
@@ -258,12 +298,23 @@ export default function Questionnaire() {
       'specialEvents',
       'medical',
       'skincare',
+      'temperature',
       'review'
     ];
+
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1]);
     }
+  };
+
+  const handleGenerateList = () => {
+    const tripDuration = endDate && startDate 
+      ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      : 7;
+
+    const packingList = generatePackingList(answers, tripDuration);
+    router.push(`/packing-list?data=${encodeURIComponent(JSON.stringify(packingList))}`);
   };
 
   const renderQuestion = () => {
@@ -280,8 +331,10 @@ export default function Questionnaire() {
       'specialEvents',
       'medical',
       'skincare',
+      'temperature',
       'review'
     ];
+
     const currentStepIndex = steps.indexOf(currentStep) + 1;
     const totalSteps = steps.length;
 
@@ -304,15 +357,18 @@ export default function Questionnaire() {
             <div key={key} className="border-b pb-4 dark:border-gray-700">
               <h3 className="font-medium mb-2 capitalize dark:text-white">{key}</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                {Array.isArray(value) ? value.join(', ') : value.toString()}
+                {key === 'temperature' 
+                  ? `Min: ${(value as { min: number; max: number }).min}°C, Max: ${(value as { min: number; max: number }).max}°C`
+                  : key === 'swimming'
+                  ? value ? 'Yes' : 'No'
+                  : Array.isArray(value) 
+                    ? value.join(', ') || 'None selected'
+                    : value.toString()}
               </p>
             </div>
           ))}
           <button
-            onClick={() => {
-              // Handle submission
-              console.log('Final answers:', answers);
-            }}
+            onClick={handleGenerateList}
             className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
           >
             Generate Packing List
@@ -336,46 +392,63 @@ export default function Questionnaire() {
           </div>
         </div>
         <h2 className="text-2xl font-semibold mb-4 dark:text-white">{question.title}</h2>
-        <div className="space-y-3">
-          {question.options.map((option) => (
-            <label
-              key={option}
-              className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
-            >
-              <input
-                type={question.multiple ? "checkbox" : "radio"}
-                checked={
-                  typeof answers[currentStep] === 'boolean'
-                    ? answers[currentStep] === (option === 'Yes')
-                    : (answers[currentStep] as string[]).includes(option)
-                }
-                onChange={() => {
-                  if (currentStep === 'swimming') {
-                    handleAnswer(currentStep, option === 'Yes');
-                  } else {
-                    handleAnswer(currentStep, option);
+        {question.component ? (
+          question.component
+        ) : (
+          <div className="space-y-3">
+            {question.options.map((option) => (
+              <label
+                key={option}
+                className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
+              >
+                <input
+                  type={question.multiple ? "checkbox" : "radio"}
+                  name={currentStep}
+                  checked={
+                    typeof answers[currentStep] === 'boolean'
+                      ? answers[currentStep] === (option === 'Yes')
+                      : (answers[currentStep] as string[]).includes(option)
                   }
-                }}
-                className="form-checkbox h-5 w-5 text-blue-500 dark:bg-gray-700"
-              />
-              <span className="dark:text-white">{option}</span>
-            </label>
-          ))}
-        </div>
+                  onChange={() => {
+                    if (currentStep === 'swimming') {
+                      handleAnswer(currentStep, option === 'Yes');
+                    } else {
+                      handleAnswer(currentStep, option);
+                    }
+                  }}
+                  className="form-checkbox h-5 w-5 text-blue-500 dark:bg-gray-700"
+                />
+                <span className="dark:text-white">{option}</span>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <button
-        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        className="fixed right-4 top-4 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-      >
-        {theme === 'dark' ? '🌞' : '🌙'}
-      </button>
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="fixed top-0 left-0 right-0 flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-900 z-10">
+        <Link href="/" className="flex items-center space-x-2">
+          <Image 
+            src="/wut2pack.svg"
+            alt="wut2pack Logo"
+            width={24}
+            height={24}
+            className="dark:invert"
+          />
+          <span className="font-medium dark:text-white">wut2pack</span>
+        </Link>
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+          {theme === 'dark' ? '🌞' : '🌙'}
+        </button>
+      </div>
 
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-4xl mx-auto pt-20 px-4 sm:px-6 lg:px-8">
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 space-y-6">
           {renderQuestion()}
           
@@ -399,6 +472,6 @@ export default function Questionnaire() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
