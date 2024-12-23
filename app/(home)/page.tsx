@@ -125,8 +125,8 @@ export default function Home() {
             className="object-cover"
           />
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/10">
-            <h1 className="text-5xl font-bold mb-4">Pack your bags</h1>
-            <p className="text-lg max-w-2xl text-center">
+            <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-4 px-4 text-center">Pack your bags</h1>
+            <p className="text-base md:text-lg max-w-2xl text-center px-4">
               Generate a packing list in seconds. Say goodbye to overpacking and last-minute trips to the store.
             </p>
           </div>

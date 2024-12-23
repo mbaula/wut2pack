@@ -82,11 +82,11 @@ export default function MyLists() {
 
       <div className="container mx-auto px-4 pt-20">
         <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold dark:text-white">My Packing Lists</h1>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold dark:text-white">My Packing Lists</h1>
             <Link 
               href="/"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-center"
             >
               Create New List
             </Link>
@@ -99,34 +99,36 @@ export default function MyLists() {
               {lists.map((list) => (
                 <div 
                   key={list.id}
-                  className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex justify-between items-center group"
+                  className="group bg-white dark:bg-gray-800 p-4 md:p-6 rounded-lg shadow"
                 >
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 dark:text-white">{list.name}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-2">
-                      {list.origin} → {list.destination}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {list.startDate && new Date(list.startDate.split('+')[0]).toLocaleDateString()} - {list.endDate && new Date(list.endDate.split('+')[0]).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => handleView(list)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                    >
-                      View & Edit
-                    </button>
-                    <ShareButton 
-                      shareId={list.shareId || crypto.randomUUID()}
-                      listId={list.id}
-                    />
-                    <button
-                      onClick={() => handleDelete(list.id)}
-                      className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                    >
-                      Delete
-                    </button>
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 dark:text-white">{list.name}</h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-2">
+                        {list.origin} → {list.destination}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {list.startDate && new Date(list.startDate.split('+')[0]).toLocaleDateString()} - {list.endDate && new Date(list.endDate.split('+')[0]).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 md:opacity-0 group-hover:md:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => handleView(list)}
+                        className="flex-1 md:flex-none px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm md:text-base"
+                      >
+                        View & Edit
+                      </button>
+                      <ShareButton 
+                        shareId={list.shareId || crypto.randomUUID()}
+                        listId={list.id}
+                      />
+                      <button
+                        onClick={() => handleDelete(list.id)}
+                        className="flex-1 md:flex-none px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm md:text-base"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
