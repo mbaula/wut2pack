@@ -287,24 +287,40 @@ export default function PackingListPage({
 
       <div className="container mx-auto px-4 pt-20">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            {isEditingName ? (
-              <div className="flex items-center gap-2 flex-1">
-                <input
-                  type="text"
-                  value={listName}
-                  onChange={(e) => setListName(e.target.value)}
-                  className="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  autoFocus
-                  onBlur={() => setIsEditingName(false)}
-                  onKeyDown={(e) => e.key === 'Enter' && setIsEditingName(false)}
-                />
-              </div>
-            ) : (
-              <h1 className="text-3xl font-bold dark:text-white" onClick={() => setIsEditingName(true)}>
-                {listName}
-              </h1>
-            )}
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div>
+              {isEditingName ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    type="text"
+                    value={listName}
+                    onChange={(e) => setListName(e.target.value)}
+                    className="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    autoFocus
+                    onBlur={() => setIsEditingName(false)}
+                    onKeyDown={(e) => e.key === 'Enter' && setIsEditingName(false)}
+                  />
+                </div>
+              ) : (
+                <h1 
+                  className="text-2xl md:text-3xl font-bold dark:text-white mb-2"
+                  onClick={() => setIsEditingName(true)}
+                >
+                  {listName}
+                </h1>
+              )}
+              {tripDetails.startDate && tripDetails.endDate && (
+                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+                  From: {isShared 
+                    ? new Date(tripDetails.startDate + 'T12:00:00').toLocaleDateString()
+                    : new Date(new Date(tripDetails.startDate).getTime() + 86400000).toLocaleDateString()
+                  } - {isShared 
+                    ? new Date(tripDetails.endDate + 'T12:00:00').toLocaleDateString()
+                    : new Date(new Date(tripDetails.endDate).getTime() + 86400000).toLocaleDateString()
+                  }
+                </p>
+              )}
+            </div>
             <div className="flex gap-2">
               <ShareButton 
                 shareId={lists.find(l => 
@@ -313,26 +329,16 @@ export default function PackingListPage({
                   l.startDate === tripDetails.startDate && 
                   l.endDate === tripDetails.endDate
                 )?.shareId || ''}
+                // className="text-sm md:text-base px-3 py-2 md:px-4 md:py-2"
               />
               <button
                 onClick={handleSaveList}
-                className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800 transition-colors"
+                className="text-sm md:text-base px-3 py-2 md:px-4 md:py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800 transition-colors whitespace-nowrap"
               >
                 Save List
               </button>
             </div>
           </div>
-          {tripDetails.startDate && tripDetails.endDate && (
-            <p className="text-gray-600 dark:text-gray-400">
-              From: {isShared 
-                ? new Date(tripDetails.startDate + 'T12:00:00').toLocaleDateString()
-                : new Date(new Date(tripDetails.startDate).getTime() + 86400000).toLocaleDateString()
-              } - {isShared 
-                ? new Date(tripDetails.endDate + 'T12:00:00').toLocaleDateString()
-                : new Date(new Date(tripDetails.endDate).getTime() + 86400000).toLocaleDateString()
-              }
-            </p>
-          )}
         </div>
 
         <button
