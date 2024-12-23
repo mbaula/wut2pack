@@ -18,12 +18,22 @@ interface EditingItem {
   quantity: number;
 }
 
-interface PackingListPageProps {
+interface PageProps {
+  params: { [key: string]: string | string[] | undefined }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+interface PackingListPageProps extends PageProps {
   isShared?: boolean;
   shareId?: string;
 }
 
-export default function PackingListPage({ isShared = false, shareId }: PackingListPageProps) {
+export default function PackingListPage({ 
+  params,
+  searchParams,
+  isShared = false, 
+  shareId 
+}: PackingListPageProps) {
   const router = useRouter();
   const { packingList, tripDetails, setPackingList } = useTripStore();
   const [editingItem, setEditingItem] = useState<EditingItem | null>(null);
@@ -71,7 +81,7 @@ export default function PackingListPage({ isShared = false, shareId }: PackingLi
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [shareId, getListByShareId]);
+  }, [shareId, getListByShareId, setPackingList]);
 
   if (!packingList || !tripDetails) return null;
 
@@ -199,6 +209,11 @@ export default function PackingListPage({ isShared = false, shareId }: PackingLi
           await updateList(sharedList.id, {
             name: listName,
             items: packingList,
+            origin: tripDetails.origin,
+            destination: tripDetails.destination,
+            startDate: tripDetails.startDate,
+            endDate: tripDetails.endDate,
+            isShared: true
           });
           toast.success('List updated successfully!');
         }
@@ -214,26 +229,29 @@ export default function PackingListPage({ isShared = false, shareId }: PackingLi
           await updateList(existingList.id, {
             name: listName,
             items: packingList,
+            origin: tripDetails.origin,
+            destination: tripDetails.destination,
+            startDate: tripDetails.startDate,
+            endDate: tripDetails.endDate,
+            isShared: existingList.isShared
           });
           toast.success('List updated successfully!');
         } else {
           await addList({
             name: listName,
+            items: packingList,
             origin: tripDetails.origin,
             destination: tripDetails.destination,
             startDate: tripDetails.startDate,
             endDate: tripDetails.endDate,
-            items: packingList,
             isShared: false
           });
           toast.success('List saved successfully!');
         }
-        
-        if (!isShared) {
-          router.push('/my-lists');
-        }
+        router.push('/my-lists');
       }
     } catch (error) {
+      console.error('Save error:', error);
       toast.error('Failed to save list');
     }
   };

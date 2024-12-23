@@ -111,14 +111,6 @@ export default function Home() {
               {theme === 'dark' ? '☀️' : '🌙'}
             </span>
           </button>
-          <button 
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-xl"
-            aria-label="User profile"
-          >
-            <span className="block w-6 h-6 text-center">
-              👤
-            </span>
-          </button>
         </nav>
       </header>
 

@@ -28,7 +28,8 @@ export function useSharedList(shareId: string) {
           items: data.items,
           createdAt: data.created_at,
           shareId: data.share_id,
-          isShared: data.is_shared
+          isShared: data.is_shared,
+          user_id: data.user_id
         });
       } catch (e) {
         setError(e as Error);
