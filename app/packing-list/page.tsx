@@ -10,6 +10,7 @@ import { CategoryType, PackingItem } from '@/types/packingList';
 import { useSavedListsStore } from '@/store/savedListsStore';
 import { toast } from 'react-hot-toast';
 import { ShareButton } from '@/components/ShareButton';
+import { supabase } from '@/lib/supabase';
 
 interface EditingItem {
   id: string;
@@ -47,6 +48,30 @@ export default function PackingListPage({ isShared = false, shareId }: PackingLi
       router.push('/');
     }
   }, [packingList, tripDetails, router, isShared]);
+
+  useEffect(() => {
+    if (!shareId) return;
+    
+    const channel = supabase
+      .channel(`list_${shareId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'lists',
+        filter: `share_id=eq.${shareId}`,
+      }, async (payload) => {
+        const updatedList = await getListByShareId(shareId);
+        if (updatedList) {
+          setPackingList(updatedList.items);
+          setListName(updatedList.name);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [shareId, getListByShareId]);
 
   if (!packingList || !tripDetails) return null;
 
@@ -175,14 +200,14 @@ export default function PackingListPage({ isShared = false, shareId }: PackingLi
             name: listName,
             items: packingList,
           });
-          toast.success('Shared list updated successfully!');
+          toast.success('List updated successfully!');
         }
       } else {
-        const existingList = lists.find(list => 
-          list.origin === tripDetails.origin && 
-          list.destination === tripDetails.destination && 
-          list.startDate === tripDetails.startDate && 
-          list.endDate === tripDetails.endDate
+        const existingList = lists.find(l => 
+          l.origin === tripDetails.origin && 
+          l.destination === tripDetails.destination && 
+          l.startDate === tripDetails.startDate && 
+          l.endDate === tripDetails.endDate
         );
 
         if (existingList) {
