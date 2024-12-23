@@ -7,12 +7,26 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { ShareButton } from '@/components/ShareButton';
 
 export default function MyLists() {
-  const { lists, deleteList } = useSavedListsStore();
+  const [mounted, setMounted] = useState(false);
+  const { lists, fetchLists, isLoading, error, deleteList } = useSavedListsStore();
   const { setTripDetails, setPackingList } = useTripStore();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    fetchLists();
+  }, []);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading lists: {error.message}</div>;
 
   const handleView = (list: SavedList) => {
     setTripDetails({
@@ -26,11 +40,28 @@ export default function MyLists() {
     router.push('/packing-list');
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this list?')) {
-      deleteList(id);
-      toast.success('List deleted successfully');
+      try {
+        await deleteList(id);
+        toast.success('List deleted successfully');
+      } catch (error) {
+        toast.error('Failed to delete list');
+      }
     }
+  };
+
+  const ThemeToggle = () => {
+    if (!mounted) return null;
+    
+    return (
+      <button
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+      >
+        {theme === 'dark' ? '🌞' : '🌙'}
+      </button>
+    );
   };
 
   return (
@@ -46,12 +77,7 @@ export default function MyLists() {
           />
           <span className="font-medium dark:text-white">wut2pack</span>
         </Link>
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-        >
-          {theme === 'dark' ? '🌞' : '🌙'}
-        </button>
+        <ThemeToggle />
       </div>
 
       <div className="container mx-auto px-4 pt-20">
@@ -73,7 +99,7 @@ export default function MyLists() {
               {lists.map((list) => (
                 <div 
                   key={list.id}
-                  className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex justify-between items-center"
+                  className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex justify-between items-center group"
                 >
                   <div>
                     <h3 className="text-xl font-semibold mb-2 dark:text-white">{list.name}</h3>
@@ -81,16 +107,20 @@ export default function MyLists() {
                       {list.origin} → {list.destination}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(list.startDate).toLocaleDateString()} - {new Date(list.endDate).toLocaleDateString()}
+                      {list.startDate && new Date(list.startDate.split('+')[0]).toLocaleDateString()} - {list.endDate && new Date(list.endDate.split('+')[0]).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleView(list)}
                       className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                     >
                       View & Edit
                     </button>
+                    <ShareButton 
+                      shareId={list.shareId || crypto.randomUUID()}
+                      listId={list.id}
+                    />
                     <button
                       onClick={() => handleDelete(list.id)}
                       className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"

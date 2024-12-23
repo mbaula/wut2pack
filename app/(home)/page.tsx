@@ -66,18 +66,20 @@ export default function Home() {
       return;
     }
 
-    const tripDetails = {
-      origin,
-      destination,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      listName: listName || 'My Packing List',
-    };
+    try {
+      const tripDetails = {
+        origin,
+        destination,
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        listName: listName || 'My Packing List',
+      };
 
-    setTripDetails(tripDetails);
-    console.log('Trip details set:', tripDetails);
-
-    router.push('/questionnaire');
+      setTripDetails(tripDetails);
+      router.push('/questionnaire');
+    } catch (error) {
+      toast.error('Failed to create list');
+    }
   };
 
   if (!mounted) {

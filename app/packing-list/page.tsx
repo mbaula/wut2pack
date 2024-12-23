@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { CategoryType, PackingItem } from '@/types/packingList';
 import { useSavedListsStore } from '@/store/savedListsStore';
 import { toast } from 'react-hot-toast';
+import { ShareButton } from '@/components/ShareButton';
 
 interface EditingItem {
   id: string;
@@ -16,7 +17,12 @@ interface EditingItem {
   quantity: number;
 }
 
-export default function PackingListPage() {
+interface PackingListPageProps {
+  isShared?: boolean;
+  shareId?: string;
+}
+
+export default function PackingListPage({ isShared = false, shareId }: PackingListPageProps) {
   const router = useRouter();
   const { packingList, tripDetails, setPackingList } = useTripStore();
   const [editingItem, setEditingItem] = useState<EditingItem | null>(null);
@@ -27,15 +33,20 @@ export default function PackingListPage() {
     quantity: 1,
     category: 'misc' as CategoryType
   });
-  const { addList, lists, updateList } = useSavedListsStore();
+  const { addList, lists, updateList, getListByShareId } = useSavedListsStore();
   const [isEditingName, setIsEditingName] = useState(false);
   const [listName, setListName] = useState(tripDetails?.listName || '');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!packingList || !tripDetails) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isShared && (!packingList || !tripDetails)) {
       router.push('/');
     }
-  }, [packingList, tripDetails, router]);
+  }, [packingList, tripDetails, router, isShared]);
 
   if (!packingList || !tripDetails) return null;
 
@@ -155,36 +166,64 @@ export default function PackingListPage() {
     return acc;
   }, {} as Record<CategoryType, PackingItem[]>);
 
-  const handleSaveList = () => {
-    const existingList = lists.find(list => 
-      list.origin === tripDetails.origin && 
-      list.destination === tripDetails.destination && 
-      list.startDate === tripDetails.startDate && 
-      list.endDate === tripDetails.endDate
-    );
+  const handleSaveList = async () => {
+    try {
+      if (isShared && shareId) {
+        const sharedList = await getListByShareId(shareId);
+        if (sharedList) {
+          await updateList(sharedList.id, {
+            name: listName,
+            items: packingList,
+          });
+          toast.success('Shared list updated successfully!');
+        }
+      } else {
+        const existingList = lists.find(list => 
+          list.origin === tripDetails.origin && 
+          list.destination === tripDetails.destination && 
+          list.startDate === tripDetails.startDate && 
+          list.endDate === tripDetails.endDate
+        );
 
-    if (existingList) {
-      updateList(existingList.id, {
-        name: listName,
-        items: packingList,
-      });
-      toast.success('List updated successfully!');
-    } else {
-      const newList = {
-        id: crypto.randomUUID(),
-        name: listName,
-        origin: tripDetails.origin,
-        destination: tripDetails.destination,
-        startDate: tripDetails.startDate,
-        endDate: tripDetails.endDate,
-        items: packingList,
-        createdAt: new Date().toISOString(),
-      };
-      addList(newList);
-      toast.success('List saved successfully!');
+        if (existingList) {
+          await updateList(existingList.id, {
+            name: listName,
+            items: packingList,
+          });
+          toast.success('List updated successfully!');
+        } else {
+          await addList({
+            name: listName,
+            origin: tripDetails.origin,
+            destination: tripDetails.destination,
+            startDate: tripDetails.startDate,
+            endDate: tripDetails.endDate,
+            items: packingList,
+            isShared: false
+          });
+          toast.success('List saved successfully!');
+        }
+        
+        if (!isShared) {
+          router.push('/my-lists');
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to save list');
     }
+  };
+
+  const ThemeToggle = () => {
+    if (!mounted) return null;
     
-    router.push('/my-lists');
+    return (
+      <button
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+      >
+        {theme === 'dark' ? '🌞' : '🌙'}
+      </button>
+    );
   };
 
   return (
@@ -200,12 +239,7 @@ export default function PackingListPage() {
           />
           <span className="font-medium dark:text-white">wut2pack</span>
         </Link>
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-        >
-          {theme === 'dark' ? '🌞' : '🌙'}
-        </button>
+        <ThemeToggle />
       </div>
 
       <div className="container mx-auto px-4 pt-20">
@@ -228,17 +262,32 @@ export default function PackingListPage() {
                 {listName}
               </h1>
             )}
-            <button
-              onClick={handleSaveList}
-              className="ml-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-            >
-              Save List
-            </button>
+            <div className="flex gap-2">
+              <ShareButton 
+                shareId={lists.find(l => 
+                  l.origin === tripDetails.origin && 
+                  l.destination === tripDetails.destination && 
+                  l.startDate === tripDetails.startDate && 
+                  l.endDate === tripDetails.endDate
+                )?.shareId || ''}
+              />
+              <button
+                onClick={handleSaveList}
+                className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800 transition-colors"
+              >
+                Save List
+              </button>
+            </div>
           </div>
           {tripDetails.startDate && tripDetails.endDate && (
             <p className="text-gray-600 dark:text-gray-400">
-              From: {new Date(tripDetails.startDate).toLocaleDateString()} 
-              To: {new Date(tripDetails.endDate).toLocaleDateString()}
+              From: {isShared 
+                ? new Date(tripDetails.startDate + 'T12:00:00').toLocaleDateString()
+                : new Date(new Date(tripDetails.startDate).getTime() + 86400000).toLocaleDateString()
+              } - {isShared 
+                ? new Date(tripDetails.endDate + 'T12:00:00').toLocaleDateString()
+                : new Date(new Date(tripDetails.endDate).getTime() + 86400000).toLocaleDateString()
+              }
             </p>
           )}
         </div>

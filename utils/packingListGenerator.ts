@@ -866,7 +866,7 @@ function calculateQuantity(item: PackingItem, tripDuration: number): number {
       }
       if (item.name.toLowerCase().includes('shirt') || 
           item.name.toLowerCase().includes('top')) {
-        return Math.min(Math.ceil(tripDuration / 2) + 1, 10); // One shirt for every 2 days plus 1 extra, max 5
+        return Math.min(tripDuration + 1, 10); // One shirt for every 2 days plus 1 extra, max 5
       }
       break;
     case 'toiletries':
