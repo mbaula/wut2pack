@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import CityInput from "@/components/CityInput";
 import { toast } from 'react-hot-toast';
 import { useTripStore } from '@/store/tripStore';
+import { useSavedListsStore } from '@/store/savedListsStore';
 
 interface WeatherData {
   forecast?: {
@@ -39,6 +40,7 @@ export default function Home() {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [listName, setListName] = useState("");
   const { setTripDetails } = useTripStore();
+  const { addList } = useSavedListsStore();
 
   useEffect(() => {
     setMounted(true);
@@ -97,8 +99,7 @@ export default function Home() {
           <span className="font-medium dark:text-white">wut2pack</span>
         </div>
         <nav className="flex items-center gap-6">
-          <a href="#" className="hover:opacity-80 dark:text-white">Create</a>
-          <a href="#" className="hover:opacity-80 dark:text-white">My Lists</a>
+          <a href="/my-lists" className="hover:opacity-80 dark:text-white">My Lists</a>
           <button 
             onClick={toggleTheme}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-xl"

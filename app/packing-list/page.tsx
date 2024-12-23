@@ -7,6 +7,8 @@ import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CategoryType, PackingItem } from '@/types/packingList';
+import { useSavedListsStore } from '@/store/savedListsStore';
+import { toast } from 'react-hot-toast';
 
 interface EditingItem {
   id: string;
@@ -25,6 +27,9 @@ export default function PackingListPage() {
     quantity: 1,
     category: 'misc' as CategoryType
   });
+  const { addList, lists, updateList } = useSavedListsStore();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [listName, setListName] = useState(tripDetails?.listName || '');
 
   useEffect(() => {
     if (!packingList || !tripDetails) {
@@ -91,21 +96,26 @@ export default function PackingListPage() {
       categories: {
         ...packingList.categories,
         [newItem.category]: [
-          ...packingList.categories[newItem.category],
+          ...(packingList.categories[newItem.category] || []),
           {
-            id: `custom-${Date.now()}`,
-            name: newItem.name.trim(),
+            id: crypto.randomUUID(),
+            name: newItem.name,
             quantity: newItem.quantity,
             category: newItem.category,
-            essential: false
+            essential: true
           }
         ]
       }
     };
 
     setPackingList(updatedPackingList);
+    setNewItem({
+      name: '',
+      quantity: 1,
+      category: 'misc' as CategoryType
+    });
     setIsAddingItem(false);
-    setNewItem({ name: '', quantity: 1, category: 'misc' });
+    toast.success('Item added successfully');
   };
 
   const handleAddNonEssential = (itemToAdd: PackingItem) => {
@@ -145,6 +155,38 @@ export default function PackingListPage() {
     return acc;
   }, {} as Record<CategoryType, PackingItem[]>);
 
+  const handleSaveList = () => {
+    const existingList = lists.find(list => 
+      list.origin === tripDetails.origin && 
+      list.destination === tripDetails.destination && 
+      list.startDate === tripDetails.startDate && 
+      list.endDate === tripDetails.endDate
+    );
+
+    if (existingList) {
+      updateList(existingList.id, {
+        name: listName,
+        items: packingList,
+      });
+      toast.success('List updated successfully!');
+    } else {
+      const newList = {
+        id: crypto.randomUUID(),
+        name: listName,
+        origin: tripDetails.origin,
+        destination: tripDetails.destination,
+        startDate: tripDetails.startDate,
+        endDate: tripDetails.endDate,
+        items: packingList,
+        createdAt: new Date().toISOString(),
+      };
+      addList(newList);
+      toast.success('List saved successfully!');
+    }
+    
+    router.push('/my-lists');
+  };
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="fixed top-0 left-0 right-0 flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-900 z-10">
@@ -168,11 +210,33 @@ export default function PackingListPage() {
 
       <div className="container mx-auto px-4 pt-20">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-          <h1 className="text-3xl font-bold mb-4 dark:text-white">
-            {tripDetails.listName}
-          </h1>
+          <div className="flex items-center justify-between mb-4">
+            {isEditingName ? (
+              <div className="flex items-center gap-2 flex-1">
+                <input
+                  type="text"
+                  value={listName}
+                  onChange={(e) => setListName(e.target.value)}
+                  className="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  autoFocus
+                  onBlur={() => setIsEditingName(false)}
+                  onKeyDown={(e) => e.key === 'Enter' && setIsEditingName(false)}
+                />
+              </div>
+            ) : (
+              <h1 className="text-3xl font-bold dark:text-white" onClick={() => setIsEditingName(true)}>
+                {listName}
+              </h1>
+            )}
+            <button
+              onClick={handleSaveList}
+              className="ml-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+            >
+              Save List
+            </button>
+          </div>
           {tripDetails.startDate && tripDetails.endDate && (
-            <p className="text-gray-600 dark:text-gray-400 mb-2">
+            <p className="text-gray-600 dark:text-gray-400">
               From: {new Date(tripDetails.startDate).toLocaleDateString()} 
               To: {new Date(tripDetails.endDate).toLocaleDateString()}
             </p>
@@ -293,7 +357,6 @@ export default function PackingListPage() {
                             />
                             <span className="flex-1">
                               {item.quantity > 1 ? `${item.quantity}x ` : ''}{item.name}
-                              {item.essential && <span className="text-xs text-blue-500 ml-1">*</span>}
                             </span>
                             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                               <button
@@ -324,7 +387,7 @@ export default function PackingListPage() {
 
         <div className="mt-8">
           <h2 className="text-2xl font-semibold mb-4 dark:text-white">Other things you may need:</h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 pb-4">
             {Object.entries(packingList.categories).flatMap(([category, items]) =>
               items
                 .filter(item => !item.essential)
@@ -345,10 +408,6 @@ export default function PackingListPage() {
             )}
           </div>
         </div>
-
-        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-          * Essential items
-        </p>
       </div>
     </main>
   );

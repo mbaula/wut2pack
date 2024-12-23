@@ -259,6 +259,370 @@ const eyewearSpecificItems: EyewearItems = {
   ],
 };
 
+type TransportationItems = {
+  [key: string]: PackingItem[];
+};
+
+const transportationSpecificItems: TransportationItems = {
+  'Plane': [
+    { id: 'boarding-pass', name: 'Boarding Pass', category: 'documents', quantity: 1, essential: true },
+    { id: 'passport', name: 'Passport', category: 'documents', quantity: 1, essential: true },
+    { id: 'tsa-lock', name: 'TSA-Approved Lock', category: 'accessories', quantity: 1, essential: false },
+    { id: 'luggage-tag', name: 'Luggage Tag', category: 'accessories', quantity: 1, essential: true },
+    { id: 'neck-pillow', name: 'Travel Neck Pillow', category: 'accessories', quantity: 1, essential: false },
+    { id: 'compression-socks', name: 'Compression Socks', category: 'clothing', quantity: 1, essential: false },
+    { id: 'eye-mask', name: 'Sleep Eye Mask', category: 'accessories', quantity: 1, essential: false },
+  ],
+  'Train': [
+    { id: 'train-ticket', name: 'Train Ticket', category: 'documents', quantity: 1, essential: true },
+    { id: 'train-pass', name: 'Rail Pass', category: 'documents', quantity: 1, essential: false },
+    { id: 'book-entertainment', name: 'Book/Entertainment', category: 'misc', quantity: 1, essential: false },
+    { id: 'snacks', name: 'Snacks', category: 'misc', quantity: 1, essential: false },
+  ],
+  'Car': [
+    { id: 'drivers-license', name: 'Driver\'s License', category: 'documents', quantity: 1, essential: true },
+    { id: 'car-insurance', name: 'Car Insurance Documents', category: 'documents', quantity: 1, essential: true },
+    { id: 'car-charger', name: 'Car Phone Charger', category: 'electronics', quantity: 1, essential: true },
+    { id: 'car-snacks', name: 'Road Trip Snacks', category: 'misc', quantity: 1, essential: false },
+    { id: 'emergency-kit', name: 'Car Emergency Kit', category: 'medical', quantity: 1, essential: true },
+    { id: 'car-maps', name: 'Offline Maps/GPS', category: 'electronics', quantity: 1, essential: false },
+  ],
+  'Bus': [
+    { id: 'bus-ticket', name: 'Bus Ticket', category: 'documents', quantity: 1, essential: true },
+    { id: 'travel-pillow', name: 'Travel Pillow', category: 'accessories', quantity: 1, essential: false },
+    { id: 'bus-entertainment', name: 'Entertainment Device', category: 'electronics', quantity: 1, essential: false },
+    { id: 'bus-snacks', name: 'Snacks', category: 'misc', quantity: 1, essential: false },
+  ],
+  'Cruise Ship': [
+    { id: 'cruise-docs', name: 'Cruise Documents', category: 'documents', quantity: 1, essential: true },
+    { id: 'passport-cruise', name: 'Passport', category: 'documents', quantity: 1, essential: true },
+    { id: 'formal-wear', name: 'Formal Wear', category: 'clothing', quantity: 1, essential: true },
+    { id: 'motion-sickness', name: 'Motion Sickness Medication', category: 'medical', quantity: 1, essential: false },
+    { id: 'cruise-card-holder', name: 'Cruise Card Holder/Lanyard', category: 'accessories', quantity: 1, essential: false },
+    { id: 'water-shoes', name: 'Water Shoes', category: 'clothing', quantity: 1, essential: false },
+  ],
+  'Multiple Modes': [
+    { id: 'universal-adapter', name: 'Universal Power Adapter', category: 'electronics', quantity: 1, essential: true },
+    { id: 'backup-charger', name: 'Backup Power Bank', category: 'electronics', quantity: 1, essential: true },
+    { id: 'travel-docs', name: 'All Travel Documents', category: 'documents', quantity: 1, essential: true },
+    { id: 'travel-insurance', name: 'Travel Insurance Documents', category: 'documents', quantity: 1, essential: true },
+    { id: 'multi-weather', name: 'Multi-Weather Clothing', category: 'clothing', quantity: 1, essential: true },
+  ],
+};
+
+type SpecialEventItems = {
+  [key: string]: PackingItem[];
+};
+
+const specialEventItems: SpecialEventItems = {
+  'Formal Dinner': [
+    { id: 'formal-attire', name: 'Formal Attire', category: 'clothing', quantity: 1, essential: true },
+    { id: 'dress-shoes', name: 'Dress Shoes', category: 'clothing', quantity: 1, essential: true },
+    { id: 'formal-accessories', name: 'Formal Accessories (Tie/Jewelry)', category: 'accessories', quantity: 1, essential: true },
+    { id: 'evening-bag', name: 'Evening Bag/Clutch', category: 'accessories', quantity: 1, essential: false },
+    { id: 'dress-socks', name: 'Dress Socks', category: 'clothing', quantity: 1, essential: true },
+  ],
+  'Business Meeting': [
+    { id: 'business-suit', name: 'Business Suit/Professional Attire', category: 'clothing', quantity: 1, essential: true },
+    { id: 'business-shoes', name: 'Business Shoes', category: 'clothing', quantity: 1, essential: true },
+    { id: 'business-documents', name: 'Business Documents', category: 'documents', quantity: 1, essential: true },
+    { id: 'business-cards', name: 'Business Cards', category: 'documents', quantity: 1, essential: true },
+    { id: 'portfolio', name: 'Portfolio/Notebook', category: 'misc', quantity: 1, essential: false },
+  ],
+  'Wedding': [
+    { id: 'wedding-attire', name: 'Wedding Appropriate Attire', category: 'clothing', quantity: 1, essential: true },
+    { id: 'wedding-shoes', name: 'Formal Shoes', category: 'clothing', quantity: 1, essential: true },
+    { id: 'wedding-gift', name: 'Wedding Gift/Card', category: 'misc', quantity: 1, essential: true },
+    { id: 'wedding-invite', name: 'Wedding Invitation', category: 'documents', quantity: 1, essential: true },
+    { id: 'wedding-accessories', name: 'Wedding Accessories', category: 'accessories', quantity: 1, essential: false },
+  ],
+  'Party': [
+    { id: 'party-outfit', name: 'Party Outfit', category: 'clothing', quantity: 1, essential: true },
+    { id: 'party-shoes', name: 'Party Shoes', category: 'clothing', quantity: 1, essential: true },
+    { id: 'party-gift', name: 'Party Gift/Card', category: 'misc', quantity: 1, essential: false },
+  ],
+  'Religious Service': [
+    { id: 'modest-attire', name: 'Modest/Appropriate Attire', category: 'clothing', quantity: 1, essential: true },
+    { id: 'head-covering', name: 'Head Covering (if required)', category: 'clothing', quantity: 1, essential: false },
+    { id: 'religious-items', name: 'Religious Items', category: 'misc', quantity: 1, essential: false },
+  ],
+};
+
+type MedicalItems = {
+  [key: string]: PackingItem[];
+};
+
+const medicalItems: MedicalItems = {
+  'Prescription Medications': [
+    { id: 'prescriptions', name: 'Prescription Medications', category: 'medical', quantity: 1, essential: true },
+    { id: 'prescription-copies', name: 'Prescription Copies', category: 'documents', quantity: 1, essential: true },
+    { id: 'pill-organizer', name: 'Pill Organizer', category: 'medical', quantity: 1, essential: false },
+    { id: 'medical-info', name: 'Medical Information Card', category: 'documents', quantity: 1, essential: true },
+  ],
+  'First Aid Kit': [
+    { id: 'first-aid-kit', name: 'First Aid Kit', category: 'medical', quantity: 1, essential: true },
+    { id: 'bandages', name: 'Bandages/Band-aids', category: 'medical', quantity: 1, essential: true },
+    { id: 'pain-relief', name: 'Pain Relief Medication', category: 'medical', quantity: 1, essential: true },
+    { id: 'antiseptic', name: 'Antiseptic Wipes', category: 'medical', quantity: 1, essential: true },
+  ],
+  'Mobility Aids': [
+    { id: 'mobility-device', name: 'Mobility Device', category: 'medical', quantity: 1, essential: true },
+    { id: 'device-accessories', name: 'Device Accessories/Parts', category: 'medical', quantity: 1, essential: true },
+    { id: 'medical-documents', name: 'Medical Device Documentation', category: 'documents', quantity: 1, essential: true },
+  ],
+  'Special Diet': [
+    { id: 'dietary-snacks', name: 'Special Diet Snacks', category: 'misc', quantity: 1, essential: true },
+    { id: 'dietary-card', name: 'Dietary Restrictions Card', category: 'documents', quantity: 1, essential: true },
+    { id: 'supplements', name: 'Dietary Supplements', category: 'medical', quantity: 1, essential: false },
+  ],
+  'Allergies': [
+    { id: 'allergy-meds', name: 'Allergy Medications', category: 'medical', quantity: 1, essential: true },
+    { id: 'epipen', name: 'Epinephrine Auto-Injector', category: 'medical', quantity: 1, essential: true },
+    { id: 'allergy-card', name: 'Allergy Information Card', category: 'documents', quantity: 1, essential: true },
+    { id: 'medical-bracelet', name: 'Medical Alert Bracelet', category: 'accessories', quantity: 1, essential: true },
+  ],
+};
+
+type TemperatureBasedItems = {
+  cold: PackingItem[];
+  mild: PackingItem[];
+  warm: PackingItem[];
+  hot: PackingItem[];
+};
+
+const temperatureBasedItems: TemperatureBasedItems = {
+  cold: [ // Below 10°C
+    { 
+      id: 'winter-coat', 
+      name: 'Winter Coat', 
+      category: 'clothing', 
+      quantity: 1, 
+      essential: true,
+      conditions: { temperature: { max: 10 } }
+    },
+    { 
+      id: 'thermal-underwear', 
+      name: 'Thermal Underwear', 
+      category: 'clothing', 
+      quantity: 2, 
+      essential: true,
+      conditions: { temperature: { max: 5 } }
+    },
+    { 
+      id: 'winter-boots', 
+      name: 'Winter Boots', 
+      category: 'clothing', 
+      quantity: 1, 
+      essential: true,
+      conditions: { temperature: { max: 5 } }
+    },
+    { 
+      id: 'wool-socks', 
+      name: 'Wool Socks', 
+      category: 'clothing', 
+      quantity: 3, 
+      essential: true,
+      conditions: { temperature: { max: 10 } }
+    },
+    { 
+      id: 'gloves', 
+      name: 'Gloves/Mittens', 
+      category: 'accessories', 
+      quantity: 1, 
+      essential: true,
+      conditions: { temperature: { max: 10 } }
+    },
+    { 
+      id: 'winter-hat', 
+      name: 'Winter Hat', 
+      category: 'accessories', 
+      quantity: 1, 
+      essential: true,
+      conditions: { temperature: { max: 10 } }
+    },
+    { 
+      id: 'scarf', 
+      name: 'Scarf', 
+      category: 'accessories', 
+      quantity: 1, 
+      essential: true,
+      conditions: { temperature: { max: 10 } }
+    }
+  ],
+  mild: [ // 10-20°C
+    { 
+      id: 'light-jacket', 
+      name: 'Light Jacket/Sweater', 
+      category: 'clothing', 
+      quantity: 1, 
+      essential: true,
+      conditions: { temperature: { min: 10, max: 20 } }
+    },
+    { 
+      id: 'long-sleeve-shirts', 
+      name: 'Long Sleeve Shirts', 
+      category: 'clothing', 
+      quantity: 3, 
+      essential: true,
+      conditions: { temperature: { min: 10, max: 20 } }
+    },
+    { 
+      id: 'light-layers', 
+      name: 'Layering Pieces', 
+      category: 'clothing', 
+      quantity: 2, 
+      essential: true,
+      conditions: { temperature: { min: 10, max: 20 } }
+    }
+  ],
+  warm: [ // 20-25°C
+    { 
+      id: 'short-sleeve-shirts', 
+      name: 'Short Sleeve Shirts', 
+      category: 'clothing', 
+      quantity: 3, 
+      essential: true,
+      conditions: { temperature: { min: 20, max: 25 } }
+    },
+    { 
+      id: 'light-pants', 
+      name: 'Light Weight Pants', 
+      category: 'clothing', 
+      quantity: 2, 
+      essential: true,
+      conditions: { temperature: { min: 20, max: 25 } }
+    },
+    { 
+      id: 'sun-hat', 
+      name: 'Sun Hat', 
+      category: 'accessories', 
+      quantity: 1, 
+      essential: false,
+      conditions: { temperature: { min: 20 } }
+    }
+  ],
+  hot: [ // Above 25°C
+    { 
+      id: 'shorts', 
+      name: 'Shorts', 
+      category: 'clothing', 
+      quantity: 3, 
+      essential: true,
+      conditions: { temperature: { min: 25 } }
+    },
+    { 
+      id: 'tank-tops', 
+      name: 'Tank Tops/Sleeveless Shirts', 
+      category: 'clothing', 
+      quantity: 3, 
+      essential: true,
+      conditions: { temperature: { min: 25 } }
+    },
+    { 
+      id: 'sandals', 
+      name: 'Sandals', 
+      category: 'clothing', 
+      quantity: 1, 
+      essential: false,
+      conditions: { temperature: { min: 25 } }
+    },
+    { 
+      id: 'cooling-towel', 
+      name: 'Cooling Towel', 
+      category: 'accessories', 
+      quantity: 1, 
+      essential: false,
+      conditions: { temperature: { min: 30 } }
+    },
+    { 
+      id: 'portable-fan', 
+      name: 'Portable Fan', 
+      category: 'accessories', 
+      quantity: 1, 
+      essential: false,
+      conditions: { temperature: { min: 30 } }
+    }
+  ]
+};
+
+type InternationalTravelItems = PackingItem[];
+
+const internationalTravelItems: InternationalTravelItems = [
+  { 
+    id: 'passport', 
+    name: 'Passport', 
+    category: 'documents', 
+    quantity: 1, 
+    essential: true 
+  },
+  { 
+    id: 'visa-docs', 
+    name: 'Visa Documentation', 
+    category: 'documents', 
+    quantity: 1, 
+    essential: true 
+  },
+  { 
+    id: 'travel-insurance', 
+    name: 'Travel Insurance Documents', 
+    category: 'documents', 
+    quantity: 1, 
+    essential: true 
+  },
+  { 
+    id: 'vaccination-records', 
+    name: 'Vaccination Records', 
+    category: 'documents', 
+    quantity: 1, 
+    essential: true 
+  },
+  { 
+    id: 'currency-exchange', 
+    name: 'Foreign Currency/Exchange Info', 
+    category: 'documents', 
+    quantity: 1, 
+    essential: true 
+  },
+  { 
+    id: 'universal-adapter', 
+    name: 'Universal Power Adapter', 
+    category: 'electronics', 
+    quantity: 1, 
+    essential: true 
+  },
+  { 
+    id: 'embassy-info', 
+    name: 'Embassy Contact Information', 
+    category: 'documents', 
+    quantity: 1, 
+    essential: false 
+  },
+  { 
+    id: 'customs-forms', 
+    name: 'Customs Declaration Forms', 
+    category: 'documents', 
+    quantity: 1, 
+    essential: true 
+  },
+  { 
+    id: 'translation-device', 
+    name: 'Translation Device/App', 
+    category: 'electronics', 
+    quantity: 1, 
+    essential: false 
+  },
+  { 
+    id: 'medication-letter', 
+    name: 'Prescription Medication Letter', 
+    category: 'documents', 
+    quantity: 1, 
+    essential: false,
+    conditions: {
+      medical: ['Prescription Medications']
+    }
+  }
+];
+
 export function generatePackingList(
   answers: Answers,
   tripDuration: number,
@@ -349,6 +713,73 @@ export function generatePackingList(
     });
   }
 
+  // Add transportation-specific items
+  answers.transportation.forEach(transport => {
+    const transportItems = transportationSpecificItems[transport] || [];
+    transportItems.forEach(item => {
+      itemsMap.set(item.id, item);
+    });
+  });
+
+  // Add special event items
+  answers.specialEvents.forEach(event => {
+    if (event !== 'None') {
+      const eventItems = specialEventItems[event] || [];
+      eventItems.forEach(item => {
+        itemsMap.set(item.id, item);
+      });
+    }
+  });
+
+  // Add medical items
+  answers.medical.forEach(medicalNeed => {
+    if (medicalNeed !== 'None') {
+      const medicalSpecificItems = medicalItems[medicalNeed] || [];
+      medicalSpecificItems.forEach(item => {
+        itemsMap.set(item.id, item);
+      });
+    }
+  });
+
+  // Add temperature-based items
+  const { min: minTemp, max: maxTemp } = answers.temperature;
+
+  // Add cold weather items if minimum temperature is low
+  if (minTemp <= 10) {
+    temperatureBasedItems.cold.forEach(item => {
+      if (shouldIncludeItem(item, answers, tripDuration)) {
+        itemsMap.set(item.id, item);
+      }
+    });
+  }
+
+  // Add mild weather items for moderate temperatures
+  if (minTemp <= 20 && maxTemp >= 10) {
+    temperatureBasedItems.mild.forEach(item => {
+      if (shouldIncludeItem(item, answers, tripDuration)) {
+        itemsMap.set(item.id, item);
+      }
+    });
+  }
+
+  // Add warm weather items
+  if (maxTemp >= 20) {
+    temperatureBasedItems.warm.forEach(item => {
+      if (shouldIncludeItem(item, answers, tripDuration)) {
+        itemsMap.set(item.id, item);
+      }
+    });
+  }
+
+  // Add hot weather items if maximum temperature is high
+  if (maxTemp >= 25) {
+    temperatureBasedItems.hot.forEach(item => {
+      if (shouldIncludeItem(item, answers, tripDuration)) {
+        itemsMap.set(item.id, item);
+      }
+    });
+  }
+
   // Convert map back to array and filter/process items
   Array.from(itemsMap.values()).forEach(item => {
     if (shouldIncludeItem(item, answers, tripDuration)) {
@@ -362,6 +793,15 @@ export function generatePackingList(
       }
     }
   });
+
+  // Add international travel items if origin and destination are in different countries
+  if (origin && destination && isInternationalTravel(origin, destination)) {
+    internationalTravelItems.forEach(item => {
+      if (shouldIncludeItem(item, answers, tripDuration)) {
+        itemsMap.set(item.id, item);
+      }
+    });
+  }
 
   return list;
 }
@@ -410,11 +850,23 @@ function calculateQuantity(item: PackingItem, tripDuration: number): number {
   // Basic quantity calculation based on trip duration
   switch (item.category) {
     case 'clothing':
-      if (item.name.includes('Underwear') || item.name.includes('Socks')) {
-        return Math.min(tripDuration + 2, 10); // Pack for each day plus 2 extra, max 10
+      // Handle socks as a special case
+      if (item.name.toLowerCase().includes('socks')) {
+        // If we already have a socks item, don't add more
+        if (item.name.toLowerCase().includes('dress') || 
+            item.name.toLowerCase().includes('wool') || 
+            item.name.toLowerCase().includes('thermal')) {
+          return 1; // Special socks get 1 pair
+        }
+        return Math.min(tripDuration + 2, 10); // Regular socks get trip duration + 2, max 7
       }
-      if (item.name.includes('Shirt') || item.name.includes('Top')) {
-        return Math.min(tripDuration + 2, 10); // Pack for each day plus 2 extra, max 10
+      
+      if (item.name.toLowerCase().includes('underwear')) {
+        return Math.min(tripDuration + 2, 10); // Pack for each day plus 2 extra, max 7
+      }
+      if (item.name.toLowerCase().includes('shirt') || 
+          item.name.toLowerCase().includes('top')) {
+        return Math.min(Math.ceil(tripDuration / 2) + 1, 10); // One shirt for every 2 days plus 1 extra, max 5
       }
       break;
     case 'toiletries':
