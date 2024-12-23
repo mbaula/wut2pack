@@ -3,10 +3,43 @@
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import CityInput from "@/components/CityInput";
+
+interface WeatherData {
+  forecast?: {
+    date: Date;
+    temp: { min: number; max: number };
+    description: string;
+  }[];
+  userInput?: {
+    temp: { min: number; max: number };
+  };
+}
 
 export default function Home() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const [origin, setOrigin] = useState("");
+  const [destination, setDestination] = useState("");
+  const [originLocation, setOriginLocation] = useState<{
+    name: string;
+    state?: string;
+    country: string;
+    lat: number;
+    lon: number;
+  } | null>(null);
+  const [destLocation, setDestLocation] = useState<{
+    name: string;
+    state?: string;
+    country: string;
+    lat: number;
+    lon: number;
+  } | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [listName, setListName] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -14,6 +47,27 @@ export default function Home() {
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  const handleSubmit = () => {
+    if (!origin || !destination || !startDate || !endDate || !originLocation || !destLocation) {
+      // Show error message
+      return;
+    }
+
+    const params = new URLSearchParams({
+      origin,
+      destination,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      originLat: originLocation.lat.toString(),
+      originLon: originLocation.lon.toString(),
+      destLat: destLocation.lat.toString(),
+      destLon: destLocation.lon.toString(),
+      listName: listName || 'My Packing List',
+    });
+
+    router.push(`/questionnaire?${params.toString()}`);
   };
 
   if (!mounted) {
@@ -79,22 +133,22 @@ export default function Home() {
         <div className="w-full max-w-2xl">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transition-colors">
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm text-left mb-2 dark:text-white">Origin</label>
-                <input
-                  type="text"
-                  placeholder="City, Country"
-                  className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 [transition:background-color_0.2s_ease-in-out,color_0.1s_ease-in-out]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-left mb-2 dark:text-white">Destination</label>
-                <input
-                  type="text"
-                  placeholder="City, Country"
-                  className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 [transition:background-color_0.2s_ease-in-out,color_0.1s_ease-in-out]"
-                />
-              </div>
+              <CityInput
+                label="Origin"
+                value={origin}
+                onChange={(value, location) => {
+                  setOrigin(value);
+                  if (location) setOriginLocation(location);
+                }}
+              />
+              <CityInput
+                label="Destination"
+                value={destination}
+                onChange={(value, location) => {
+                  setDestination(value);
+                  if (location) setDestLocation(location);
+                }}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-6">
@@ -103,12 +157,14 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="date"
-                    placeholder="Start date"
+                    value={startDate ? startDate.toISOString().split('T')[0] : ''}
+                    onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : null)}
                     className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 [transition:background-color_0.2s_ease-in-out,color_0.1s_ease-in-out]"
                   />
                   <input
                     type="date"
-                    placeholder="End date"
+                    value={endDate ? endDate.toISOString().split('T')[0] : ''}
+                    onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : null)}
                     className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 [transition:background-color_0.2s_ease-in-out,color_0.1s_ease-in-out]"
                   />
                 </div>
@@ -117,14 +173,19 @@ export default function Home() {
                 <label className="block text-sm text-left mb-2 dark:text-white">List name</label>
                 <input
                   type="text"
+                  value={listName}
+                  onChange={(e) => setListName(e.target.value)}
                   placeholder="e.g., Summer vacation"
                   className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 [transition:background-color_0.2s_ease-in-out,color_0.1s_ease-in-out]"
                 />
               </div>
             </div>
 
-            <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">
-              Start Packing
+            <button 
+              onClick={handleSubmit}
+              className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              Generate Packing List
             </button>
           </div>
         </div>
