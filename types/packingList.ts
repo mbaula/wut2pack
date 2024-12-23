@@ -15,6 +15,7 @@ export interface PackingItem {
   category: CategoryType;
   quantity: number;
   essential: boolean;
+  checked?: boolean;
   conditions?: {
     temperature?: {
       min?: number;

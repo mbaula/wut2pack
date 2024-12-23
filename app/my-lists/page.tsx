@@ -108,7 +108,7 @@ export default function MyLists() {
                         {list.origin} → {list.destination}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {list.startDate && new Date(list.startDate.split('+')[0]).toLocaleDateString()} - {list.endDate && new Date(list.endDate.split('+')[0]).toLocaleDateString()}
+                        {list.startDate && new Date(new Date(list.startDate).getTime() + 86400000).toLocaleDateString()} - {list.endDate && new Date(new Date(list.endDate).getTime() + 86400000).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2 md:opacity-0 group-hover:md:opacity-100 transition-opacity">

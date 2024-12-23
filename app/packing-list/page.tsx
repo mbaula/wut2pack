@@ -28,6 +28,10 @@ interface PackingListPageProps extends PageProps {
   shareId?: string;
 }
 
+interface PackingItemWithChecked extends PackingItem {
+  checked?: boolean;
+}
+
 export default function PackingListPage({ 
   params,
   searchParams,
@@ -203,19 +207,24 @@ export default function PackingListPage({
 
   const handleSaveList = async () => {
     try {
+      const listToSave = {
+        name: listName,
+        items: packingList,
+        origin: tripDetails.origin,
+        destination: tripDetails.destination,
+        startDate: tripDetails.startDate,
+        endDate: tripDetails.endDate,
+      };
+
       if (isShared && shareId) {
         const sharedList = await getListByShareId(shareId);
         if (sharedList) {
           await updateList(sharedList.id, {
-            name: listName,
-            items: packingList,
-            origin: tripDetails.origin,
-            destination: tripDetails.destination,
-            startDate: tripDetails.startDate,
-            endDate: tripDetails.endDate,
+            ...listToSave,
             isShared: true
           });
           toast.success('List updated successfully!');
+          router.push('/my-lists');
         }
       } else {
         const existingList = lists.find(l => 
@@ -227,32 +236,57 @@ export default function PackingListPage({
 
         if (existingList) {
           await updateList(existingList.id, {
-            name: listName,
-            items: packingList,
-            origin: tripDetails.origin,
-            destination: tripDetails.destination,
-            startDate: tripDetails.startDate,
-            endDate: tripDetails.endDate,
+            ...listToSave,
             isShared: existingList.isShared
           });
           toast.success('List updated successfully!');
+          router.push('/my-lists');
         } else {
           await addList({
-            name: listName,
-            items: packingList,
-            origin: tripDetails.origin,
-            destination: tripDetails.destination,
-            startDate: tripDetails.startDate,
-            endDate: tripDetails.endDate,
+            ...listToSave,
             isShared: false
           });
           toast.success('List saved successfully!');
+          router.push('/my-lists');
         }
-        router.push('/my-lists');
       }
     } catch (error) {
       console.error('Save error:', error);
       toast.error('Failed to save list');
+    }
+  };
+
+  const handleCheck = async (item: PackingItem, checked: boolean) => {
+    const updatedPackingList = {
+      ...packingList,
+      categories: {
+        ...packingList.categories,
+        ...Object.fromEntries(
+          Object.entries(packingList.categories).map(([category, items]) => [
+            category,
+            items.map(i => 
+              i.id === item.id 
+                ? { ...i, checked }
+                : i
+            )
+          ])
+        )
+      }
+    };
+
+    setPackingList(updatedPackingList);
+
+    if (isShared && shareId) {
+      try {
+        const sharedList = await getListByShareId(shareId);
+        if (sharedList) {
+          await updateList(sharedList.id, {
+            items: updatedPackingList
+          });
+        }
+      } catch (error) {
+        console.error('Failed to update checked state:', error);
+      }
     }
   };
 
@@ -451,6 +485,8 @@ export default function PackingListPage({
                           <>
                             <input
                               type="checkbox"
+                              checked={item.checked || false}
+                              onChange={(e) => handleCheck(item, e.target.checked)}
                               className="rounded border-gray-300 dark:border-gray-600"
                             />
                             <span className="flex-1">
