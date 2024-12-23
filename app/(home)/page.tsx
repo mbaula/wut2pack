@@ -154,34 +154,33 @@ export default function Home() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-sm text-left mb-2 dark:text-white">Trip dates</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="date"
-                    value={startDate ? startDate.toISOString().split('T')[0] : ''}
-                    onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : null)}
-                    className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 [transition:background-color_0.2s_ease-in-out,color_0.1s_ease-in-out]"
-                  />
-                  <input
-                    type="date"
-                    value={endDate ? endDate.toISOString().split('T')[0] : ''}
-                    onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : null)}
-                    className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 [transition:background-color_0.2s_ease-in-out,color_0.1s_ease-in-out]"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm text-left mb-2 dark:text-white">List name</label>
+            <div className="mb-4">
+              <label className="block text-sm text-left mb-2 dark:text-white">Trip dates</label>
+              <div className="grid grid-cols-2 gap-2">
                 <input
-                  type="text"
-                  value={listName}
-                  onChange={(e) => setListName(e.target.value)}
-                  placeholder="e.g., Summer vacation"
+                  type="date"
+                  value={startDate ? startDate.toISOString().split('T')[0] : ''}
+                  onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : null)}
+                  className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 [transition:background-color_0.2s_ease-in-out,color_0.1s_ease-in-out]"
+                />
+                <input
+                  type="date"
+                  value={endDate ? endDate.toISOString().split('T')[0] : ''}
+                  onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : null)}
                   className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 [transition:background-color_0.2s_ease-in-out,color_0.1s_ease-in-out]"
                 />
               </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm text-left mb-2 dark:text-white">List name</label>
+              <input
+                type="text"
+                value={listName}
+                onChange={(e) => setListName(e.target.value)}
+                placeholder="e.g., Summer vacation"
+                className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 [transition:background-color_0.2s_ease-in-out,color_0.1s_ease-in-out]"
+              />
             </div>
 
             <form onSubmit={handleSubmit}>

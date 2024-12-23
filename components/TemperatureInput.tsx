@@ -204,7 +204,7 @@ export default function TemperatureInput({ value, onChange, startDate, endDate }
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="hidden md:block mt-4">
         <div 
           className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full relative cursor-pointer"
           onClick={handleSliderClick}
