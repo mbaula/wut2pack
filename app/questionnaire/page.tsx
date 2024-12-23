@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import TemperatureInput from '@/components/TemperatureInput';
@@ -49,10 +49,11 @@ type Question = {
   component?: React.ReactNode;
 };
 
-export default function Questionnaire() {
-  const searchParams = useSearchParams();
-  const { theme, setTheme } = useTheme();
-  const [currentStep, setCurrentStep] = useState<QuestionStep>('accommodation');
+// Create a client component that uses useSearchParams
+const SearchParamsComponent = () => {
+  const searchParams = useSearchParams()
+  const { theme, setTheme } = useTheme()
+  const [currentStep, setCurrentStep] = useState<QuestionStep>('accommodation')
   const [answers, setAnswers] = useState<Answers>({
     temperature: { min: 20, max: 25 },
     activities: [],
@@ -67,18 +68,18 @@ export default function Questionnaire() {
     amenities: [],
     medical: [],
     skincare: []
-  });
-  const router = useRouter();
-  const { setPackingList } = useTripStore();
-  const tripDetails = useTripStore((state) => state.tripDetails);
+  })
+  const router = useRouter()
+  const { setPackingList } = useTripStore()
+  const tripDetails = useTripStore((state) => state.tripDetails)
 
   useEffect(() => {
-    console.log('Current trip details:', tripDetails);
-  }, [tripDetails]);
+    console.log('Current trip details:', tripDetails)
+  }, [tripDetails])
 
   // Parse dates from URL parameters
-  const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : null;
-  const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : null;
+  const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : null
+  const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : null
 
   const questions: Record<QuestionStep, Question> = {
     accommodation: {
@@ -241,31 +242,31 @@ export default function Questionnaire() {
       options: [],
       multiple: false
     }
-  };
+  }
 
   const handleAnswer = (questionKey: keyof Answers, value: string | boolean) => {
     setAnswers(prev => {
       if (typeof value === 'boolean') {
-        return { ...prev, [questionKey]: value };
+        return { ...prev, [questionKey]: value }
       }
       
-      const currentAnswers = prev[questionKey] as string[];
+      const currentAnswers = prev[questionKey] as string[]
       if (currentAnswers.includes(value as string)) {
         return {
           ...prev,
           [questionKey]: currentAnswers.filter(item => item !== value)
-        };
+        }
       } else {
         if (!questions[questionKey].multiple) {
-          return { ...prev, [questionKey]: [value as string] };
+          return { ...prev, [questionKey]: [value as string] }
         }
         return {
           ...prev,
           [questionKey]: [...currentAnswers, value as string]
-        };
+        }
       }
-    });
-  };
+    })
+  }
 
   const nextStep = () => {
     const steps: QuestionStep[] = [
@@ -283,13 +284,13 @@ export default function Questionnaire() {
       'skincare',
       'temperature',
       'review'
-    ];
+    ]
 
-    const currentIndex = steps.indexOf(currentStep);
+    const currentIndex = steps.indexOf(currentStep)
     if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1]);
+      setCurrentStep(steps[currentIndex + 1])
     }
-  };
+  }
 
   const prevStep = () => {
     const steps: QuestionStep[] = [
@@ -307,37 +308,37 @@ export default function Questionnaire() {
       'skincare',
       'temperature',
       'review'
-    ];
+    ]
 
-    const currentIndex = steps.indexOf(currentStep);
+    const currentIndex = steps.indexOf(currentStep)
     if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1]);
+      setCurrentStep(steps[currentIndex - 1])
     }
-  };
+  }
 
   const handleGenerateList = () => {
     if (!tripDetails) {
-      console.error('No trip details found');
-      router.push('/');
-      return;
+      console.error('No trip details found')
+      router.push('/')
+      return
     }
 
-    const tripDuration = new Date(tripDetails.endDate).getTime() - new Date(tripDetails.startDate).getTime();
-    const durationInDays = Math.ceil(tripDuration / (1000 * 60 * 60 * 24));
+    const tripDuration = new Date(tripDetails.endDate).getTime() - new Date(tripDetails.startDate).getTime()
+    const durationInDays = Math.ceil(tripDuration / (1000 * 60 * 60 * 24))
 
     const packingList = generatePackingList(
       answers,
       durationInDays,
       tripDetails.origin,
       tripDetails.destination
-    );
+    )
 
-    setPackingList(packingList);
+    setPackingList(packingList)
     
     setTimeout(() => {
-      router.push('/packing-list');
-    }, 0);
-  };
+      router.push('/packing-list')
+    }, 0)
+  }
 
   const renderQuestion = () => {
     const steps: QuestionStep[] = [
@@ -355,10 +356,10 @@ export default function Questionnaire() {
       'skincare',
       'temperature',
       'review'
-    ];
+    ]
 
-    const currentStepIndex = steps.indexOf(currentStep) + 1;
-    const totalSteps = steps.length;
+    const currentStepIndex = steps.indexOf(currentStep) + 1
+    const totalSteps = steps.length
 
     if (currentStep === 'review') {
       return (
@@ -396,10 +397,10 @@ export default function Questionnaire() {
             Generate Packing List
           </button>
         </div>
-      );
+      )
     }
 
-    const question = questions[currentStep];
+    const question = questions[currentStep]
     return (
       <div className="space-y-6">
         <div className="mb-6">
@@ -433,9 +434,9 @@ export default function Questionnaire() {
                   }
                   onChange={() => {
                     if (currentStep === 'swimming') {
-                      handleAnswer(currentStep, option === 'Yes');
+                      handleAnswer(currentStep, option === 'Yes')
                     } else {
-                      handleAnswer(currentStep, option);
+                      handleAnswer(currentStep, option)
                     }
                   }}
                   className="form-checkbox h-5 w-5 text-blue-500 dark:bg-gray-700"
@@ -446,8 +447,8 @@ export default function Questionnaire() {
           </div>
         )}
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -495,5 +496,14 @@ export default function Questionnaire() {
         </div>
       </div>
     </main>
-  );
+  )
+}
+
+// Main page component
+export default function QuestionnairePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SearchParamsComponent />
+    </Suspense>
+  )
 }
